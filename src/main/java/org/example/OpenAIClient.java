@@ -19,6 +19,7 @@ public class OpenAIClient {
 
     private final ObjectMapper objectMapper;
 
+
     public OpenAIClient(String endpoint, String apikey, HttpClient client, ObjectMapper objectMapper) {
         this.endpoint = endpoint;
         this.apikey = apikey;
@@ -26,27 +27,23 @@ public class OpenAIClient {
         this.objectMapper = objectMapper;
     }
 
-    public String chatCompletion() throws IOException, URISyntaxException, InterruptedException {
+    public ChatCompletionResponse chatCompletion(ChatCompletionRequest chatCompletionRequest) throws IOException, URISyntaxException, InterruptedException {
+
         var request = HttpRequest.newBuilder()
                 .uri(new URI(endpoint + "/chat/completions"))
                 .header("Content-Type", "application/json")
                 .header("Authorization", "Bearer " + apikey)
-                .POST(HttpRequest.BodyPublishers.ofString("""
-                        {
-                            "model": "codellama/CodeLlama-34b-Instruct-hf",
-                            "messages": [{"role": "system", "content": "You are a helpful assistant."}, {"role": "user", "content": "Hello!"}],
-                            "temperature": 0.7
-                        }"""))
+                .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(chatCompletionRequest)))
                 .build();
 
         var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
 
         if (response.statusCode() != 200) {
             throw new IllegalStateException("Unexpected status code %d".formatted(response.statusCode()));
         }
 
-        ChatCompletionResponse result = objectMapper.readValue(response.body(), ChatCompletionResponse.class);
-        return result.toString();
-
+        return objectMapper.readValue(response.body(), ChatCompletionResponse.class);
     }
+
 }

@@ -19,7 +19,7 @@ public class Config {
     }
 
 
-    public static Config load() {
+    public static Config load() throws IOException {
 
         try (var stream = Config.class.getResourceAsStream("/application.properties")) {
             Properties properties = new Properties();
@@ -27,7 +27,7 @@ public class Config {
 
             return new Config(properties.getProperty("config.endpoint"), properties.getProperty("config.api.key"));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IOException(e);
         }
 
 
